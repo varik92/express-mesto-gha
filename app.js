@@ -21,8 +21,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use('/', routerAuth);
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+/* app.post('/signin', login);
+app.post('/signup', createUser); */
 
 app.use(auth);
 
