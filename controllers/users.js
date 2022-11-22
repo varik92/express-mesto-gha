@@ -7,6 +7,7 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 const NotFound = require('../errors/NotFound');
 const BadRequest = require('../errors/BadRequest');
 const InternalServerError = require('../errors/InternalServerError');
+const EmailExist = require('../errors/EmailExist');
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -39,13 +40,19 @@ module.exports.createUser = (req, res, next) => {
       User.create({
         name, about, avatar, email, password: hash,
       })
-        .then((user) => res.send({ data: user }))
+        .then((user) => res.send({
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+          _id: user._id,
+        }))
         .catch((err) => {
           if (err.name === 'ValidationError') {
             next(new BadRequest('Переданы некорректные данные при создании пользователя'));
           }
           if (err.code === 11000) {
-            next(new BadRequest('Пользователь с таким Email уже существует'));
+            next(new EmailExist('Пользователь с таким Email уже существует'));
           }
           next(new InternalServerError('Произошла ошибка'));
         });
