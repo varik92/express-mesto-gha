@@ -22,11 +22,13 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.post('/signin', login);
 app.post('/signup', createUser);
 
+app.use('/', routerAuth);
+
 app.use(auth);
 
 app.use(routerUsers);
 app.use(routerCards);
-app.use('/', routerAuth);
+
 app.use('*', (req, res, next) => next(new NotFound('Неправильный путь')));
 
 app.use(errors());
