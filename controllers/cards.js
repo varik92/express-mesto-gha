@@ -39,7 +39,7 @@ module.exports.deleteCardId = (req, res, next) => {
             if (cardDelete) {
               return res.send({ message: 'Карточка успешна удалена' });
             }
-            next(new InternalServerError('Произошла ошибка'));
+            return next(new InternalServerError('Произошла ошибка'));
           })
           .catch((err) => {
             if (err.name === 'CastError') {

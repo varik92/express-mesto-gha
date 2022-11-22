@@ -21,7 +21,7 @@ module.exports.getUserId = (req, res, next) => {
     if (user) {
       return res.send({ data: user });
     }
-    next(new NotFound('Пользователь по указанному id не найден'));
+    return next(new NotFound('Пользователь по указанному id не найден'));
   }).catch((err) => {
     if (err.name === 'CastError') {
       next(new BadRequest('Переданы некорректные данные'));
