@@ -1,46 +1,58 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const {
-  statusBadRequest,
-  statusNotFound,
-  statusInternalServerError,
-} = require('../utils/constants');
 
-module.exports.getUsers = (req, res) => {
+const { NODE_ENV, JWT_SECRET } = process.env;
+
+const NotFound = require('../errors/NotFound');
+const BadRequest = require('../errors/BadRequest');
+const InternalServerError = require('../errors/InternalServerError');
+
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(statusInternalServerError).send({ message: 'Произошла ошибка' }));
+    .catch(() => next(new InternalServerError('Произошла ошибка')));
 };
 
-module.exports.getUserId = (req, res) => {
+module.exports.getUserId = (req, res, next) => {
   const { userId } = req.params;
 
   User.findById(userId).then((user) => {
     if (user) {
       return res.send({ data: user });
     }
-    return res.status(statusNotFound).send({ message: 'Пользователь по указанному id не найден' });
+    next(new NotFound('Пользователь по указанному id не найден'));
   }).catch((err) => {
     if (err.name === 'CastError') {
-      return res.status(statusBadRequest).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequest('Переданы некорректные данные'));
     }
-    return res.status(statusInternalServerError).send({ message: 'Произошла ошибка' });
+    next(new InternalServerError('Произошла ошибка'));
   });
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(statusBadRequest).send({ message: 'Переданы некорректные данные при создании пользователя' });
-      }
-      return res.status(statusInternalServerError).send({ message: 'Произошла ошибка' });
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      User.create({
+        name, about, avatar, email, password: hash,
+      })
+        .then((user) => res.send({ data: user }))
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            next(new BadRequest('Переданы некорректные данные при создании пользователя'));
+          }
+          if (err.code === 11000) {
+            next(new BadRequest('Пользователь с таким Email уже существует'));
+          }
+          next(new InternalServerError('Произошла ошибка'));
+        });
     });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   const userId = req.user._id;
   User.findByIdAndUpdate(
@@ -49,21 +61,21 @@ module.exports.updateUser = (req, res) => {
     { new: true, runValidators: true },
   ).then((user) => {
     if (!user) {
-      return res.status(statusNotFound).send({ message: 'Пользователь по указанному id не найден' });
+      next(new NotFound('Пользователь по указанному id не найден'));
     }
     return res.send({ data: user });
   }).catch((err) => {
     if (err.name === 'ValidationError') {
-      res.status(statusBadRequest).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+      next(new BadRequest('Переданы некорректные данные при обновлении профиля'));
     } else if (err.name === 'CastError') {
-      res.status(statusBadRequest).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+      next(new BadRequest('Переданы некорректные данные при обновлении профиля'));
     } else {
-      res.status(statusInternalServerError).send({ message: 'Произошла ошибка' });
+      next(new InternalServerError('Произошла ошибка'));
     }
   });
 };
 
-module.exports.changeAvatar = (req, res) => {
+module.exports.changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const userId = req.user._id;
   User.findByIdAndUpdate(
@@ -72,16 +84,52 @@ module.exports.changeAvatar = (req, res) => {
     { new: true, runValidators: true },
   ).then((user) => {
     if (!user) {
-      return res.status(statusNotFound).send({ message: 'Пользователь с указанным id не найден' });
+      next(new NotFound('Пользователь с указанным id не найден'));
     }
     return res.send({ data: user });
   }).catch((err) => {
     if (err.name === 'ValidationError') {
-      res.status(statusBadRequest).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+      next(new BadRequest('Переданы некорректные данные при обновлении аватара'));
     } else if (err.name === 'CastError') {
-      res.status(statusBadRequest).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+      next(new BadRequest('Переданы некорректные данные при обновлении аватара'));
     } else {
-      res.status(statusInternalServerError).send({ message: 'Произошла ошибка' });
+      next(new InternalServerError('Произошла ошибка'));
     }
   });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password, next)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+        { expiresIn: '7d' },
+      );
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      });
+      return res.send({ token });
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest('Переданы некорректные данные при создании пользователя'));
+      }
+    });
+};
+
+module.exports.getMe = (req, res, next) => {
+  const id = req.user._id;
+
+  User.findById(id)
+    .then((user) => {
+      if (user) {
+        return res.send({ data: user });
+      }
+      return next(new NotFound('Пользователь не существует, либо был удален'));
+    })
+    .catch(() => next(new InternalServerError('Произошла ошибка')));
 };

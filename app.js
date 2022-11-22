@@ -1,8 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
 const routerUsers = require('./routes/users');
 const routerCards = require('./routes/cards');
+const { createUser, login } = require('./controllers/users');
+const { auth } = require('./middlewares/auth');
+const routerAuth = require('./routes/auth');
+const NotFound = require('./errors/NotFound');
+const errorHandler = require('./middlewares/errorHandler');
 
 const { PORT = 3000 } = process.env;
 
@@ -13,16 +19,17 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6367ca090cd9f3e63b52e084',
-  };
+app.post('/signin', login);
+app.post('/signup', createUser);
 
-  next();
-});
+app.use(auth);
 
 app.use(routerUsers);
 app.use(routerCards);
-app.use('*', (req, res) => res.status(404).send({ message: 'Неправильный путь' }));
+app.use('/', routerAuth);
+app.use('*', (req, res, next) => next(new NotFound('Неправильный путь')));
+
+app.use(errors());
+app.use(errorHandler);
 
 app.listen(PORT);
