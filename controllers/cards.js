@@ -32,6 +32,7 @@ module.exports.deleteCardId = (req, res, next) => {
     .then((card) => {
       if (!card) {
         next(new NotFound('Карточка не существует, либо была удалена'));
+        return;
       }
       if (req.user._id === card.owner) {
         Card.findByIdAndRemove(cardId)
@@ -78,8 +79,7 @@ module.exports.dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   ).then((card) => {
-    if (card === null) {
-      console.log(card);
+    if (!card) {
       next(new NotFound('Передан несуществующий id карточки'));
     }
     return res.send({ data: card });
