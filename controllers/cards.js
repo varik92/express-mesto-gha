@@ -79,6 +79,7 @@ module.exports.dislikeCard = (req, res, next) => {
     { new: true },
   ).then((card) => {
     if (card === null) {
+      console.log(card);
       next(new NotFound('Передан несуществующий id карточки'));
     }
     return res.send({ data: card });
