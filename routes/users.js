@@ -5,9 +5,9 @@ const {
 } = require('../controllers/users');
 
 router.get('/users', getUsers);
+router.get('/users/me', getMe);
 router.get('/users/:userId', getUserId);
 router.patch('/users/me', updateUser);
 router.patch('/users/me/avatar', changeAvatar);
-router.get('/users/me', getMe);
 
 module.exports = router;
