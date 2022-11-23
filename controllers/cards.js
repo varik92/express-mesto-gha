@@ -78,7 +78,7 @@ module.exports.dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   ).then((card) => {
-    if (!card) {
+    if (card === null) {
       next(new NotFound('Передан несуществующий id карточки'));
     }
     return res.send({ data: card });
