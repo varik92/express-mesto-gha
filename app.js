@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
 const routerUsers = require('./routes/users');
 const routerCards = require('./routes/cards');
-// const { createUser, login } = require('./controllers/users');
 const { auth } = require('./middlewares/auth');
 const routerAuth = require('./routes/auth');
 const NotFound = require('./errors/NotFound');
@@ -20,9 +19,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 app.use('/', routerAuth);
-
-/* app.post('/signin', login);
-app.post('/signup', createUser); */
 
 app.use(auth);
 
