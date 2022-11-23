@@ -18,11 +18,11 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 });
 
-app.use(routerUsers);
-
-app.use(auth);
 app.use('/', routerAuth);
 
+app.use(auth);
+
+app.use(routerUsers);
 app.use(routerCards);
 
 app.use('*', (req, res, next) => next(new NotFound('Неправильный путь')));
