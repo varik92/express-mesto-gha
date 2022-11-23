@@ -119,7 +119,7 @@ module.exports.login = (req, res, next) => {
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
       });
-      return res.send({ token: req.cookies.jwt });
+      return res.send(token);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
