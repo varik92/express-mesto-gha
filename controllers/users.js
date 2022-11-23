@@ -131,7 +131,7 @@ module.exports.login = (req, res, next) => {
 module.exports.getMe = (req, res, next) => {
   const id = req.user._id;
 
-  User.findById(id)
+  User.findById({ id })
     .then((user) => {
       if (user) {
         return res.send({ data: user });
