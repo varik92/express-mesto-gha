@@ -78,10 +78,10 @@ module.exports.dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   ).then((card) => {
-    if (!card) {
-      next(new NotFound('Передан несуществующий id карточки'));
+    if (card) {
+      return res.send({ data: card });
     }
-    return res.send({ data: card });
+    return next(new NotFound('Передан несуществующий id карточки'));
   })
     .catch((err) => {
       if (err.name === 'CastError') {
