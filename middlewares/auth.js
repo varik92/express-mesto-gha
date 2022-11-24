@@ -5,15 +5,14 @@ const { JWT_SECRET = 'dev-secret' } = process.env;
 const Unauthorized = require('../errors/Unauthorized');
 
 module.exports.auth = (req, res, next) => {
-  const authorization = req.headers.cookie;
-  if (!authorization || !authorization.startsWith('token=')) {
+  const { token } = req.cookies;
+  if (!token) {
     next(new Unauthorized('Необходимо авторизироваться'));
   }
 
   let payload;
 
   try {
-    const token = authorization.replace('token=', '');
     payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
     next(new Unauthorized('Необходимо авторизироваться'));
