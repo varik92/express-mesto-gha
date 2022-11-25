@@ -20,9 +20,9 @@ module.exports.createCard = (req, res, next) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные при создании карточки'));
+        return next(new BadRequest('Переданы некорректные данные при создании карточки'));
       }
-      next(new InternalServerError('Произошла ошибка'));
+      return next(new InternalServerError('Произошла ошибка'));
     });
 };
 
@@ -31,26 +31,26 @@ module.exports.deleteCardId = (req, res, next) => {
   Card.findById(cardId)
     .then((card) => {
       if (!card) {
-        next(new NotFound('Карточка не существует, либо была удалена'));
+        return next(new NotFound('Карточка не существует, либо была удалена'));
       }
-      if (req.user._id === card.owner.toString()) {
-        Card.findByIdAndRemove(cardId)
-          .then((cardDelete) => {
-            if (cardDelete) {
-              return res.send({ message: 'Карточка успешна удалена' });
-            }
-            return next(new InternalServerError('Произошла ошибка'));
-          })
-          .catch((err) => {
-            if (err.name === 'CastError') {
-              next(new BadRequest('Переданы некорректные данные'));
-            }
-            next(new InternalServerError('Произошла ошибка'));
-          });
-      } else {
-        next(new Forbidden('Нельзя удалить карточку другого пользователя'));
+      if (req.user._id !== card.owner.toString()) {
+        return next(new Forbidden('Нельзя удалить карточку другого пользователя'));
       }
-    });
+
+      return Card.findByIdAndRemove(cardId)
+        .then((cardDelete) => {
+          if (cardDelete) {
+            return res.send({ message: 'Карточка успешна удалена' });
+          }
+          return next(new InternalServerError('Произошла ошибка'));
+        })
+        .catch((err) => {
+          if (err.name === 'CastError') {
+            return next(new BadRequest('Переданы некорректные данные'));
+          }
+          return next(new InternalServerError('Произошла ошибка'));
+        });
+    }).catch(() => next(new InternalServerError('Произошла ошибка')));
 };
 
 module.exports.likeCard = (req, res, next) => {
@@ -60,15 +60,15 @@ module.exports.likeCard = (req, res, next) => {
     { new: true },
   ).then((card) => {
     if (!card) {
-      next(new NotFound('Передан несуществующий id карточки'));
+      return next(new NotFound('Передан несуществующий id карточки'));
     }
     return res.send({ data: card });
   })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequest('Переданы некорректные данные для постановки/снятии лайка.'));
+        return next(new BadRequest('Переданы некорректные данные для постановки/снятии лайка.'));
       }
-      next(new InternalServerError('Произошла ошибка'));
+      return next(new InternalServerError('Произошла ошибка'));
     });
 };
 
@@ -85,8 +85,8 @@ module.exports.dislikeCard = (req, res, next) => {
   })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequest('Переданы некорректные данные для постановки/снятии лайка.'));
+        return next(new BadRequest('Переданы некорректные данные для постановки/снятии лайка.'));
       }
-      next(new InternalServerError('Произошла ошибка'));
+      return next(new InternalServerError('Произошла ошибка'));
     });
 };

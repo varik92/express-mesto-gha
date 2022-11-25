@@ -25,9 +25,9 @@ module.exports.getUserId = (req, res, next) => {
     return next(new NotFound('Пользователь по указанному id не найден'));
   }).catch((err) => {
     if (err.name === 'CastError') {
-      next(new BadRequest('Переданы некорректные данные'));
+      return next(new BadRequest('Переданы некорректные данные'));
     }
-    next(new InternalServerError('Произошла ошибка'));
+    return next(new InternalServerError('Произошла ошибка'));
   });
 };
 
@@ -49,12 +49,12 @@ module.exports.createUser = (req, res, next) => {
         }))
         .catch((err) => {
           if (err.name === 'ValidationError') {
-            next(new BadRequest('Переданы некорректные данные при создании пользователя'));
+            return next(new BadRequest('Переданы некорректные данные при создании пользователя'));
           }
           if (err.code === 11000) {
-            next(new EmailExist('Пользователь с таким Email уже существует'));
+            return next(new EmailExist('Пользователь с таким Email уже существует'));
           }
-          next(new InternalServerError('Произошла ошибка'));
+          return next(new InternalServerError('Произошла ошибка'));
         });
     });
 };
@@ -68,7 +68,7 @@ module.exports.updateUser = (req, res, next) => {
     { new: true, runValidators: true },
   ).then((user) => {
     if (!user) {
-      next(new NotFound('Пользователь по указанному id не найден'));
+      return next(new NotFound('Пользователь по указанному id не найден'));
     }
     return res.send({ data: user });
   }).catch((err) => {
@@ -91,7 +91,7 @@ module.exports.changeAvatar = (req, res, next) => {
     { new: true, runValidators: true },
   ).then((user) => {
     if (!user) {
-      next(new NotFound('Пользователь с указанным id не найден'));
+      return next(new NotFound('Пользователь с указанным id не найден'));
     }
     return res.send({ data: user });
   }).catch((err) => {

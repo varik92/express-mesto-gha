@@ -7,7 +7,7 @@ const Unauthorized = require('../errors/Unauthorized');
 module.exports.auth = (req, res, next) => {
   const { token } = req.cookies;
   if (!token) {
-    next(new Unauthorized('Необходимо авторизироваться'));
+    return next(new Unauthorized('Необходимо авторизироваться'));
   }
 
   let payload;
@@ -20,5 +20,5 @@ module.exports.auth = (req, res, next) => {
 
   req.user = payload;
 
-  next();
+  return next();
 };
