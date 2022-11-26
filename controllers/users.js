@@ -35,27 +35,33 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  bcrypt.hash(password, 10)
-    .then((hash) => {
-      User.create({
-        name, about, avatar, email, password: hash,
-      })
-        .then((user) => res.send({
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-          email: user.email,
-          _id: user._id,
-        }))
-        .catch((err) => {
-          if (err.name === 'ValidationError') {
-            return next(new BadRequest('Переданы некорректные данные при создании пользователя'));
-          }
-          if (err.code === 11000) {
-            return next(new EmailExist('Пользователь с таким Email уже существует'));
-          }
-          return next(new InternalServerError('Произошла ошибка'));
-        });
+
+  const createUser = (hash) => User.create({
+    name,
+    about,
+    avatar,
+    email,
+    password: hash,
+  });
+
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => createUser(hash))
+    .then((user) => res.send({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+      _id: user._id,
+    }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return next(new BadRequest('Переданы некорректные данные при создании пользователя'));
+      }
+      if (err.code === 11000) {
+        return next(new EmailExist('Пользователь с таким Email уже существует'));
+      }
+      return next(new InternalServerError('Произошла ошибка'));
     });
 };
 
