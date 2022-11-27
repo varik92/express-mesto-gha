@@ -128,9 +128,7 @@ module.exports.login = (req, res, next) => {
       return res.send({ token });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные при создании пользователя'));
-      }
+      next(err);
     });
 };
 

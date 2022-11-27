@@ -38,20 +38,17 @@ module.exports.deleteCardId = (req, res, next) => {
         return next(new Forbidden('Нельзя удалить карточку другого пользователя'));
       }
 
-      return Card.findByIdAndRemove(cardId)
-        .then((cardDelete) => {
-          if (cardDelete) {
-            return res.send({ message: 'Карточка успешна удалена' });
-          }
-          return next(new InternalServerError('Произошла ошибка'));
-        })
-        .catch((err) => {
-          if (err.name === 'CastError') {
-            return next(new BadRequest('Переданы некорректные данные'));
-          }
-          return next(new InternalServerError('Произошла ошибка'));
-        });
-    }).catch(() => next(new InternalServerError('Произошла ошибка')));
+      return Card.findByIdAndRemove(cardId);
+    })
+    .then(() => {
+      res.send({ message: 'Карточка успешна удалена' });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new BadRequest('Переданы некорректные данные'));
+      }
+      return next(err);
+    });
 };
 
 module.exports.likeCard = (req, res, next) => {
