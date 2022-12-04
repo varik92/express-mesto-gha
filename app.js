@@ -9,7 +9,7 @@ const { auth } = require('./middlewares/auth');
 const routerAuth = require('./routes/auth');
 const NotFound = require('./errors/NotFound');
 const errorHandler = require('./middlewares/errorHandler');
-const { requestLogger, errorLogger } = require('./middlewares/logger');
+// const { requestLogger, errorLogger } = require('./middlewares/logger');
 const corsHandler = require('./middlewares/corsHandler');
 
 const { PORT = 3000 } = process.env;
@@ -21,7 +21,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 });
 
-app.use(requestLogger);
+// app.use(requestLogger);
 
 app.use(corsHandler);
 
@@ -34,7 +34,7 @@ app.use(routerCards);
 
 app.use('*', (req, res, next) => next(new NotFound('Неправильный путь')));
 
-app.use(errorLogger);
+// app.use(errorLogger);
 app.use(errors());
 app.use(errorHandler);
 
