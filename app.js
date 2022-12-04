@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
@@ -24,7 +23,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use(requestLogger);
 
-app.use(corsHandler());
+app.use(corsHandler);
 
 app.use('/', routerAuth);
 
