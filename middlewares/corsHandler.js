@@ -19,4 +19,4 @@ const corsHandler = (req, res, next) => {
   return next();
 };
 
-module.exports = { corsHandler };
+module.exports = corsHandler;
