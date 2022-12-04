@@ -3,8 +3,8 @@ const statusNotFound = 404;
 const statusInternalServerError = 500;
 
 const allowedCors = [
-  'https://mesto.front.v92.nomoredomains.club/',
-  'http://mesto.front.v92.nomoredomains.club/',
+  'https://mesto.front.v92.nomoredomains.club',
+  'http://mesto.front.v92.nomoredomains.club',
   'localhost:3000',
 ];
 
